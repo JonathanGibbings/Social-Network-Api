@@ -1,4 +1,4 @@
-const { User } = require("../models");
+const { User, Thought } = require("../models");
 
 const userController = {
   getAllUser(req, res) {
@@ -47,9 +47,7 @@ const userController = {
       .then((dbUserData) =>
         dbUserData
           ? res.json(dbUserData)
-          : res.status(404).json({
-              message: "No user found with this id!",
-            })
+          : res.status(404).json({ message: "No user found with this id!" })
       )
       .catch((err) => res.json(err));
   },
@@ -64,8 +62,37 @@ const userController = {
       )
       .catch((err) => res.json(err));
   },
-  addFriend() {},
-  deleteFriend() {},
+  addFriend({ params }, res) {
+    User.findOneAndUpdate(
+      { _id: params.userId },
+      { $push: { friends: params.friendId } },
+      { new: true }
+    )
+      .then((dbUserData) =>
+        dbUserData
+          ? res.json(dbUserData)
+          : res.status(404).json({ message: "No user found with this id!" })
+      )
+      .then(({ thoughts }) =>
+        thoughts.forEach((thoughtId) => {
+          Thought.findOneAndDelete({ _id: thoughtId });
+        })
+      )
+      .catch((err) => res.json(err));
+  },
+  deleteFriend({ params }, res) {
+    User.findOneAndUpdate(
+      { _id: params.userId },
+      { $pull: { friends: params.friendId } },
+      { new: true }
+    )
+      .then((dbUserData) =>
+        dbUserData
+          ? res.json(dbUserData)
+          : res.status(404).json({ message: "No user found with this id!" })
+      )
+      .catch((err) => res.json(err));
+  },
 };
 
 module.exports = userController;
