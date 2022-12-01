@@ -3,6 +3,10 @@ const { User } = require("../models");
 const userController = {
   getAllUser(req, res) {
     User.find({})
+      .populate({
+        path: "thoughts",
+        selector: "-__v",
+      })
       .select("-__v")
       .sort({ _id: -1 })
       .then((dbUserData) => res.json(dbUserData))
@@ -18,8 +22,18 @@ const userController = {
   },
   getUserById({ params }, res) {
     User.findOne({ _id: params.id })
+      .populate({
+        path: "thoughts",
+        selector: "-__v",
+      })
       .select("-__v")
-      .then((dbUserData) => res.json(dbUserData))
+      .then((dbUserData) =>
+        dbUserData
+          ? res.json(dbUserData)
+          : res.status(404).json({
+              message: "No user found with this id!",
+            })
+      )
       .catch((err) => {
         console.log(err);
         res.sendStatus(400);
@@ -41,7 +55,13 @@ const userController = {
   },
   deleteUser({ params }, res) {
     User.findOneAndDelete({ _id: params.id })
-      .then((dbUserData) => res.json(dbUserData))
+      .then((dbUserData) =>
+        dbUserData
+          ? res.json(dbUserData)
+          : res.status(404).json({
+              message: "No user found with this id!",
+            })
+      )
       .catch((err) => res.json(err));
   },
   addFriend() {},
